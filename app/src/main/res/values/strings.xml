@@ -3,4 +3,5 @@
     <string name="textview">TextView</string>
     <string name="true_button">TRUE</string>
     <string name="false_button">FALSE</string>
+    <string name="restart_button">Restart</string>
 </resources>

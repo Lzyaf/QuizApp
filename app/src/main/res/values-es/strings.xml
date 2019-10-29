@@ -3,4 +3,5 @@
     <string name="app_name">QuizApp</string>
     <string name="false_button">Falso</string>
     <string name="true_button">Cierto</string>
+    <string name="restart_button">" Reiniciar"</string>
 </resources>

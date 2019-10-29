@@ -4,11 +4,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 
@@ -21,12 +23,15 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = MainActivity.class.getSimpleName();
-    private int currentQuestion = 0;
+    private int currentQ = 0;
     private List<Question> questionsList;
     private int score;
     private Button trueButton;
     private Button falseButton;
     private TextView questionText;
+    private Quiz quiz;
+
+    public static final String EXTRA_SCORE = "score";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,21 +46,33 @@ public class MainActivity extends AppCompatActivity {
         Gson gson = new Gson();
         Question[] questions =  gson.fromJson(jsonString, Question[].class);
         questionsList = Arrays.asList(questions);
-        Log.d(TAG, "onCreate: " + questionsList.toString());
-        questionText.setText(questionsList.get(currentQuestion).getQuestion());
+        Log.d(TAG, "onCreate: " + questions.toString());
+        quiz = new Quiz(questionsList);
+        questionText.setText(quiz.getQuestions().get(quiz.getCurrentQ()).getQuestion());
     }
 
     private void setListeners() {
         trueButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (checkAnswer(true) && hasMoreQuestions()) {
+                Toast yesToast = Toast.makeText(getApplicationContext(), "RIGHT", Toast.LENGTH_SHORT);
+                Toast noToast = Toast.makeText(getApplicationContext(), "WRONG", Toast.LENGTH_SHORT);
+                if (quiz.checkAnswer(true)) {
                     score++;
-                    nextQuestion();
+                    yesToast.show();
                 }
                 else {
-                    if (hasMoreQuestions())
-                        nextQuestion();
+                    noToast.show();
+                }
+                if (!quiz.LastQuestionCheck()) {
+
+                    questionText.setText(quiz.nextQuestion());
+                }
+                else {
+                    Intent targetIntent =
+                            new Intent(MainActivity.this, ScoreActivity.class);
+                    targetIntent.putExtra(EXTRA_SCORE, score);
+                    startActivity(targetIntent);
                 }
 
             }
@@ -64,14 +81,25 @@ public class MainActivity extends AppCompatActivity {
         falseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (checkAnswer(false) && hasMoreQuestions()) {
+                Toast yesToast = Toast.makeText(getApplicationContext(), "RIGHT", Toast.LENGTH_SHORT);
+                Toast noToast = Toast.makeText(getApplicationContext(), "WRONG", Toast.LENGTH_SHORT);
+                if (quiz.checkAnswer(false)) {
                     score++;
-                    nextQuestion();
+                    yesToast.show();
+
                 }
                 else {
-                    if (hasMoreQuestions())
-                        nextQuestion();
+                    noToast.show();
                 }
+                    if (!quiz.LastQuestionCheck()) {
+                        questionText.setText(quiz.nextQuestion());
+                }
+                    else {
+                        Intent targetIntent =
+                                new Intent(MainActivity.this, ScoreActivity.class);
+                        targetIntent.putExtra(EXTRA_SCORE, score);
+                        startActivity(targetIntent);
+                    }
             }
         });
     }
@@ -98,22 +126,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return outputStream.toString();
     }
-    // reading textfile from res folder, https://stackoverflow.com/questions/15912825/how-to-read-file-from-res-raw-by-name
 
-    public boolean checkAnswer(boolean selectedAnswer) {
-        return questionsList.get(currentQuestion).getAnswer() == selectedAnswer;
-    }
-
-    public boolean hasMoreQuestions() {
-        if (questionsList.size() - 1 > currentQuestion)
-            return true;
-        else
-            return false;
-    }
-
-    public void nextQuestion() {
-        currentQuestion++;
-        questionText.setText(questionsList.get(currentQuestion).getQuestion());
-    }
 
 }
